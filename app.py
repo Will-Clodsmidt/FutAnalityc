@@ -16,10 +16,11 @@ def load_data(file_path):
             df['data'] = pd.to_datetime(df['data'], errors='coerce')
         return df
     except FileNotFoundError:
-        st.error(f"Arquivo de dados não encontrado: {file_path}. Verifique se o modelo já foi treinado e os dados processados.")
+        st.error(f"Arquivo de dados não encontrado: {file_path}. Verifique se o arquivo está no mesmo diretório que o app.py no repositório GitHub e se o nome está correto.")
         return pd.DataFrame()
 
-data_path = "/home/ubuntu/serie_a_com_previsoes_poisson.csv"
+# O caminho do arquivo de dados deve ser relativo ao local do app.py no repositório
+data_path = "serie_a_com_previsoes_poisson.csv"
 df_predictions = load_data(data_path)
 
 if not df_predictions.empty:
@@ -44,7 +45,7 @@ if not df_predictions.empty:
     st.markdown("- As previsões atuais são baseadas no modelo de Poisson para a Série A.")
     st.markdown("- Funcionalidades adicionais, incluindo o modelo XGBoost, dados das Séries B e C, e mais filtros, serão implementadas.")
 else:
-    st.warning("Não foi possível carregar os dados de previsão. Execute as etapas anteriores de coleta e modelagem.")
+    st.warning("Não foi possível carregar os dados de previsão. Verifique se o arquivo 'serie_a_com_previsoes_poisson.csv' está presente no repositório GitHub junto com o app.py e se as etapas anteriores de coleta e modelagem foram executadas corretamente para gerar este arquivo.")
 
 # Para executar este painel: streamlit run nome_do_arquivo.py
 
