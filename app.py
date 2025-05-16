@@ -11,9 +11,6 @@ st.subheader("Campeonato Brasileiro - Séries A, B e C")
 def load_data(file_path):
     try:
         df = pd.read_csv(file_path)
-        # Converter colunas de data se necessário
-        if 'data' in df.columns:
-            df['data'] = pd.to_datetime(df['data'], errors='coerce')
         return df
     except FileNotFoundError:
         st.error(f"Arquivo de dados não encontrado: {file_path}. Verifique se o arquivo está no mesmo diretório que o app.py no repositório GitHub e se o nome está correto.")
@@ -28,16 +25,22 @@ if not df_predictions.empty:
     
     # Placeholders para filtros
     st.sidebar.header("Filtros")
-    # Adicionar filtros reais posteriormente
-    # Exemplo: times_disponiveis = sorted(pd.concat([df_predictions['time_mandante'], df_predictions['time_visitante']]).unique())
-    # time_selecionado = st.sidebar.multiselect("Selecione os Times", times_disponiveis)
-    # data_inicio = st.sidebar.date_input("Data Início")
-    # data_fim = st.sidebar.date_input("Data Fim")
-
     st.info("Filtros para times, datas e campeonatos serão adicionados aqui.")
 
     # Exibir uma amostra das previsões
-    st.dataframe(df_predictions[['data', 'time_mandante', 'time_visitante', 'gols_mandante', 'gols_visitante', 'pred_gols_mandante', 'pred_gols_visitante']].head(20))
+    st.dataframe(df_predictions)
+    
+    # Estatísticas básicas
+    st.subheader("Estatísticas das Previsões")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric("Média de Gols Previstos (Mandante)", f"{df_predictions['pred_gols_mandante'].mean():.2f}")
+        st.metric("Máximo de Gols Previstos (Mandante)", f"{df_predictions['pred_gols_mandante'].max():.2f}")
+    
+    with col2:
+        st.metric("Média de Gols Previstos (Visitante)", f"{df_predictions['pred_gols_visitante'].mean():.2f}")
+        st.metric("Máximo de Gols Previstos (Visitante)", f"{df_predictions['pred_gols_visitante'].max():.2f}")
     
     st.markdown("--- ")
     st.markdown("**Observações:**")
@@ -46,6 +49,3 @@ if not df_predictions.empty:
     st.markdown("- Funcionalidades adicionais, incluindo o modelo XGBoost, dados das Séries B e C, e mais filtros, serão implementadas.")
 else:
     st.warning("Não foi possível carregar os dados de previsão. Verifique se o arquivo 'serie_a_com_previsoes_poisson.csv' está presente no repositório GitHub junto com o app.py e se as etapas anteriores de coleta e modelagem foram executadas corretamente para gerar este arquivo.")
-
-# Para executar este painel: streamlit run nome_do_arquivo.py
-
