@@ -3,9 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from datetime import datetime
-import os
-from scipy import stats
 
 # Configuração da página
 st.set_page_config(layout="wide", page_title="Sistema de Previsão de Futebol - Brasileirão")
@@ -28,39 +25,6 @@ def load_data(file_path):
 def calculate_ev(prob, odd):
     """Calcula o Expected Value de uma aposta"""
     return (prob * odd) - 1
-
-# Função para criar gráfico de regressão à média
-def plot_regression_to_mean(df, x_col, y_col, title):
-    """Cria um gráfico de regressão à média para duas variáveis"""
-    fig, ax = plt.subplots(figsize=(10, 6))
-    
-    # Plotar os pontos
-    sns.scatterplot(x=df[x_col], y=df[y_col], alpha=0.6, ax=ax)
-    
-    # Calcular a linha de regressão
-    slope, intercept, r_value, p_value, std_err = stats.linregress(df[x_col], df[y_col])
-    x_line = np.linspace(df[x_col].min(), df[x_col].max(), 100)
-    y_line = slope * x_line + intercept
-    
-    # Plotar a linha de regressão
-    plt.plot(x_line, y_line, color='red', linestyle='--')
-    
-    # Plotar a linha de média (regressão perfeita à média)
-    mean_y = df[y_col].mean()
-    plt.axhline(y=mean_y, color='green', linestyle='-.')
-    
-    # Adicionar informações da regressão
-    plt.text(0.05, 0.95, f'R² = {r_value**2:.3f}\nSlope = {slope:.3f}', 
-             transform=ax.transAxes, fontsize=12, 
-             verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
-    
-    # Configurar o gráfico
-    plt.title(title)
-    plt.xlabel(x_col)
-    plt.ylabel(y_col)
-    plt.grid(True, linestyle='--', alpha=0.7)
-    
-    return fig
 
 # Carregar dados das três séries
 serie_a_path = "serie_a_padronizada.csv"
@@ -187,30 +151,6 @@ else:
             with col3:
                 st.metric("Média Odd Vitória Visitante", f"{df['odd_2'].mean():.2f}")
     
-    # Gráficos de desempenho com regressão à média
-    st.subheader("Gráficos de Desempenho com Regressão à Média")
-    
-    # Verificar se existem colunas para gráficos de regressão
-    if 'gols_mandante' in df.columns and 'pred_gols_mandante' in df.columns:
-        st.write("### Regressão à Média - Gols Mandante")
-        fig_mandante = plot_regression_to_mean(
-            df, 
-            'pred_gols_mandante', 
-            'gols_mandante', 
-            f'Regressão à Média: Gols Previstos vs Reais (Mandante) - {selected_serie}'
-        )
-        st.pyplot(fig_mandante)
-    
-    if 'gols_visitante' in df.columns and 'pred_gols_visitante' in df.columns:
-        st.write("### Regressão à Média - Gols Visitante")
-        fig_visitante = plot_regression_to_mean(
-            df, 
-            'pred_gols_visitante', 
-            'gols_visitante', 
-            f'Regressão à Média: Gols Previstos vs Reais (Visitante) - {selected_serie}'
-        )
-        st.pyplot(fig_visitante)
-    
     # Comparação entre odds e probabilidades com sinalização de EV+
     if 'odd_1' in df.columns and 'prob_1_norm' in df.columns:
         st.subheader("Comparação entre Odds e Probabilidades (EV+)")
@@ -245,33 +185,8 @@ else:
             # Filtrar apenas colunas que existem no DataFrame
             display_columns = [col for col in display_columns if col in df.columns]
             
-            # Destacar EV positivo
-            def highlight_positive_ev(val):
-                if isinstance(val, (int, float)) and val > 0 and str(val).startswith('ev_'):
-                    return 'background-color: lightgreen'
-                return ''
-            
-            # Exibir DataFrame com EV destacado
-            st.dataframe(df[display_columns].style.applymap(highlight_positive_ev, subset=ev_columns))
-            
-            # Gráfico de distribuição de EV
-            st.write("### Distribuição de Expected Value (EV)")
-            
-            fig, ax = plt.subplots(figsize=(12, 6))
-            
-            for ev_col in ev_columns:
-                if ev_col in df.columns:
-                    market_name = ev_col.replace('ev_', '')
-                    sns.kdeplot(df[ev_col].dropna(), label=f'EV {market_name}', ax=ax)
-            
-            plt.axvline(x=0, color='red', linestyle='--', label='EV = 0 (Breakeven)')
-            plt.title(f'Distribuição de Expected Value por Mercado - {selected_serie}')
-            plt.xlabel('Expected Value (EV)')
-            plt.ylabel('Densidade')
-            plt.legend()
-            plt.grid(True, linestyle='--', alpha=0.7)
-            
-            st.pyplot(fig)
+            # Exibir DataFrame com EV
+            st.dataframe(df[display_columns])
 
 # Informações sobre o painel
 st.markdown("---")
@@ -279,5 +194,4 @@ st.markdown("**Observações:**")
 st.markdown("- Este painel integra dados das Séries A, B e C do Campeonato Brasileiro.")
 st.markdown("- Os filtros permitem selecionar séries específicas, times e rodadas.")
 st.markdown("- O ordenamento quantitativo permite classificar os dados por qualquer coluna numérica.")
-st.markdown("- Os gráficos de regressão à média mostram a relação entre valores previstos e reais, indicando tendência de regressão.")
 st.markdown("- A análise de EV+ (Expected Value positivo) destaca oportunidades onde o valor esperado da aposta é positivo.")
